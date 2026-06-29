@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Little Timers</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-auto-rows: 250px;
+            width: 100%;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .title {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.5);
+            width: 80%;
+            margin-bottom: 1rem;
+        }
+
+        .time-display {
+            font-weight: 300;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+
+        .num {
+            font-size: 2.2rem;
+        }
+
+        .unit {
+            font-size: 1rem;
+            margin-left: 2px;
+            margin-right: 10px;
+            opacity: 0.9;
+        }
+
+        .status {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-container" id="app-container"></div>
+
+    <script>
+        // ─── ADD / EDIT TIMERS HERE ───────────────────────────────────────────────
+        // Format: "YYYY-MM-DDTHH:MM:SS±HH:MM"
+        // The UTC offset should match local time at that location on that date.
+        const events = [
+            { title: "Your First Message",         target: "2024-05-25T20:45:00-04:00" }, // EDT
+            { title: "Singapore",                  target: "2025-05-21T23:40:00+08:00" }, // SGT
+            { title: "Anna in Raleigh ❤️",         target: "2025-08-07T06:00:00-04:00" }, // EDT
+            { title: "Japan",                      target: "2025-09-29T07:30:00+09:00" }, // JST
+            { title: "Australia",                  target: "2025-12-02T07:00:00+11:00" }, // AEDT
+            { title: "Massage Club",               target: "2026-01-19T17:00:00-05:00" }, // EST
+            { title: "Champagne and Scones ❤️🥖",  target: "2026-04-07T08:00:00+02:00" }, // CEST
+            { title: "Since We Last Touched",      target: "2026-04-19T10:00:00+01:00" }, // BST
+            { title: "Massage Club 3.0",           target: "2026-07-02T16:55:00-06:00" }, // MDT
+            { title: "???",                        target: "2026-08-31T12:00:00+08:00" }, // AWST
+        ];
+        // ─────────────────────────────────────────────────────────────────────────
+
+        // Spread hues evenly across blue → purple → magenta so every card is distinct.
+        // Add or remove events freely — colors always stay unique and on-theme.
+        function buildColors(n) {
+            return Array.from({ length: n }, (_, i) => {
+                const hue = Math.round(210 + (130 * i / Math.max(n - 1, 1)));
+                return `hsl(${hue}, 58%, 26%)`;
+            });
+        }
+
+        const colors = buildColors(events.length);
+        const container = document.getElementById('app-container');
+
+        events.forEach((ev, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.backgroundColor = colors[i];
+            card.innerHTML = `
+                <div class="title">${ev.title}</div>
+                <div class="divider"></div>
+                <div class="time-display" id="time-${i}">--</div>
+                <div class="status" id="status-${i}">--</div>
+            `;
+            container.appendChild(card);
+        });
+
+        function updateTimers() {
+            const now = Date.now();
+            events.forEach((ev, i) => {
+                const target = new Date(ev.target).getTime();
+                const isPast = target < now;
+                const diff = Math.abs(target - now);
+
+                const totalDays = Math.floor(diff / 86400000);
+                const years    = Math.floor(totalDays / 365);
+                const days     = totalDays % 365;
+                const hours    = Math.floor((diff % 86400000) / 3600000);
+                const minutes  = Math.floor((diff % 3600000) / 60000);
+                const seconds  = Math.floor((diff % 60000) / 1000);
+
+                let html = '';
+                if (years > 0) html += `<span class="num">${years}</span><span class="unit">Y</span>`;
+                html += `<span class="num">${days}</span><span class="unit">D</span>`;
+                html += `<span class="num">${hours}</span><span class="unit">H</span>`;
+                html += `<span class="num">${minutes}</span><span class="unit">M</span>`;
+                html += `<span class="num">${seconds}</span><span class="unit">S</span>`;
+
+                document.getElementById(`time-${i}`).innerHTML = html;
+                document.getElementById(`status-${i}`).textContent = isPast ? 'Since' : 'Until';
+            });
+        }
+
+        updateTimers();
+        setInterval(updateTimers, 1000);
+    </script>
+</body>
+</html>
